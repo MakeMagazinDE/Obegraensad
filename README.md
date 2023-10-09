@@ -9,6 +9,6 @@ Maker Media GmbH
 
 Ergänzend zum Artikel aus der Make 6/23 findest du hier den benötigten Arduino-Sketch für den ESP-Mikrocontroller.
 
-![Picture](https://github.com/MakeMagazinDE/Obegraensad/blob/main/title.jpg)
+![Picture](https://github.com/MakeMagazinDE/Obegraensad/blob/main/obegraensad_github.png)
 
 Den Artikel mit der Bauanleitung gibt es in der **[Make-Ausgabe 6/23](https://www.heise.de/select/make/2023/6)** zu lesen.
