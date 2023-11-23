@@ -16,9 +16,9 @@
 #include <Arduino.h>
 #include <pgmspace.h>
 #include <ESP8266WiFi.h>
-#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
-
- 
+// #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
+#define STASSID "SSID"
+#define STAPSK  "PASS"
 // COLORS VALID FOR OBEGRÄNSAD ARICLE
 #define P_EN D5  // ORANGE
 #define P_DI D6  // YELLO
@@ -27,8 +27,7 @@
 
 #define P_KEY D4 // ROT
 #define P_KEY_YELLOW D2 // YELLOW BUTTON
-
-#define P_LDR  A0   
+#define P_LDR A0 // LDR SENSOR
 
 
 // SET YOUR TIMEZONE HERE
@@ -316,7 +315,7 @@ void set_clock_from_tm() {
     localtime_r(&now, &tm);           // update the structure tm with the current time  
 
    // update time from struct
-  // sec  = tm.tm_min; 
+   sec    = tm.tm_sec;
    minute = tm.tm_min;   
    hour   = tm.tm_hour;   
 }
@@ -325,8 +324,7 @@ void set_clock_from_tm() {
 
 // -----------------------------------------------------------
 void setup() {
-
-  pinMode(P_LDR,INPUT);
+  pinMode(P_LDR,INPUT);          // Light detector
   pinMode(P_KEY, INPUT_PULLUP);  // RED KEY
   pinMode(P_EN, OUTPUT);         // Pseudo Analog out for FM Brightess
   analogWrite(P_EN, brightness); // adjust brightness
@@ -341,23 +339,10 @@ void setup() {
   p_printChar(9,0,'P');
   p_scan(1);
   delay(1000);
-  
-  WiFiManager wm;
-  wm.setMinimumSignalQuality(50);
-  bool res;
-#ifdef H_FREKVENS
-  res = wm.autoConnect("Y-CLOCK");  
-#endif
-#ifdef H_OBEGRANSAD
-  res = wm.autoConnect("X-CLOCK");  
-#endif
 
-/*
-// enable fo use without wifi manager
-// start network
   WiFi.mode(WIFI_STA);
   WiFi.begin(STASSID, STAPSK);
-*/
+
    while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -397,19 +382,20 @@ void loop() {
   {
     mil = millis();
     sec ++;
-    
+    // Brightness should change every second
+    brightness = map(analogRead(P_LDR), 1024, 7, 200, 254);
+    analogWrite(P_EN, brightness);
+
     // Jede Minute
     if (sec>60) {
         sec = 0;
-        print_time();
-        
         set_clock_from_tm() ;
-        set_clock();  
-
-        brightness = map(analogRead(P_LDR), 1024, 0 , 240,254);
-        Serial.print("Brightness:");Serial.println(brightness);
-        analogWrite(P_EN, brightness); 
-      }
-   }
- 
+        print_time();
+    }
+    // Sync with NTP server only once a day
+    // After 3 AM will catch summer/winter time
+    if (hour == 03 & minute == 15 & sec == 00) {
+        set_clock();
+    }
+  }
 }
